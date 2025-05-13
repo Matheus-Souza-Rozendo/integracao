@@ -1,0 +1,88 @@
+-- INSERIR O CODIGO AQUI 
+
+-- 1 
+SELECT fk_Treinamento_id, COUNT(*) AS total_participantes
+FROM Participa
+GROUP BY fk_Treinamento_id
+HAVING COUNT(*) > 10;
+
+-- 2
+SELECT f.nome
+FROM Funcionario f
+JOIN Participa p ON f.id = p.fk_Funcionario_id
+JOIN Treinamento t ON p.fk_Treinamento_id = t.id
+WHERE t.fk_Instrutor_id = 1  -- substitua pelo id desejado
+GROUP BY f.id
+HAVING COUNT(DISTINCT p.fk_Treinamento_id) = (
+    SELECT COUNT(*)
+    FROM Treinamento
+    WHERE fk_Instrutor_id = 1
+);
+
+-- 3
+SELECT DISTINCT t.*
+FROM Treinamento t
+JOIN Participa p ON t.id = p.fk_Treinamento_id
+WHERE p.fk_Data_Data BETWEEN '2025-05-14' AND '2025-05-16';
+
+
+-- 4
+
+SELECT p1.fk_Funcionario_id
+FROM Participa p1
+JOIN Participa p2
+  ON p1.fk_Funcionario_id = p2.fk_Funcionario_id
+  AND p1.fk_Data_Data = p2.fk_Data_Data
+  AND p1.fk_slot_horario_id = p2.fk_slot_horario_id
+  AND p1.fk_Treinamento_id <> p2.fk_Treinamento_id
+GROUP BY p1.fk_Funcionario_id;
+
+
+-- 5
+SELECT DISTINCT i.nome
+FROM Instrutor i
+JOIN Treinamento t ON i.id = t.fk_Instrutor_id
+JOIN Participa p ON t.id = p.fk_Treinamento_id
+GROUP BY t.id
+HAVING COUNT(p.fk_Funcionario_id) < 5;
+
+
+-- 6
+SELECT AVG(contagem) AS media_treinamentos
+FROM (
+    SELECT fk_Funcionario_id, COUNT(DISTINCT fk_Treinamento_id) AS contagem
+    FROM Participa
+    GROUP BY fk_Funcionario_id
+) AS subconsulta;
+
+
+-- 7
+-- Primeiro, calcular a duração média dos treinamentos
+WITH Duracoes AS (
+    SELECT id, TIME_TO_SEC(TIMEDIFF(hora_fim, hora_inicio)) / 60 AS duracao_min
+    FROM slot_horario
+),
+MediaDuracao AS (
+    SELECT AVG(duracao_min) AS media
+    FROM Duracoes
+)
+SELECT DISTINCT f.nome
+FROM Funcionario f
+JOIN Participa p ON f.id = p.fk_Funcionario_id
+JOIN slot_horario s ON p.fk_slot_horario_id = s.id
+JOIN MediaDuracao m ON 1=1
+WHERE TIME_TO_SEC(TIMEDIFF(s.hora_fim, s.hora_inicio)) / 60 > m.media;
+
+
+-- 8
+SELECT t.nome, COUNT(p.fk_Funcionario_id) AS participantes, t.max_participantes
+FROM Treinamento t
+JOIN Participa p ON t.id = p.fk_Treinamento_id
+GROUP BY t.id
+HAVING COUNT(p.fk_Funcionario_id) > t.max_participantes;
+
+
+
+
+
+

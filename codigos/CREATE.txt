@@ -1,0 +1,45 @@
+-- Tabela Instrutor
+CREATE TABLE Instrutor (
+    id INT PRIMARY KEY,
+    nome VARCHAR(255)
+);
+
+-- Tabela Funcionario
+CREATE TABLE Funcionario (
+    id INT PRIMARY KEY,
+    nome VARCHAR(255)
+);
+
+-- Tabela Treinamento
+CREATE TABLE Treinamento (
+    id INT PRIMARY KEY,
+    nome VARCHAR(255),
+    max_participantes INT,
+    fk_Instrutor_id INT,
+    FOREIGN KEY (fk_Instrutor_id) REFERENCES Instrutor(id) ON DELETE RESTRICT
+);
+
+-- Tabela de slots de horário
+CREATE TABLE slot_horario (
+    id INT PRIMARY KEY,
+    hora_inicio TIME,
+    hora_fim TIME
+);
+
+-- Tabela de datas (renomeada para evitar conflito com palavra reservada)
+CREATE TABLE Datas (
+    data DATE PRIMARY KEY
+);
+
+-- Tabela de associação com chave primária composta para garantir unicidade
+CREATE TABLE Participa (
+    fk_Funcionario_id INT,
+    fk_Treinamento_id INT,
+    fk_slot_horario_id INT,
+    fk_Data_Data DATE,
+    PRIMARY KEY (fk_Funcionario_id, fk_Data_Data, fk_slot_horario_id),
+    FOREIGN KEY (fk_Funcionario_id) REFERENCES Funcionario(id) ON DELETE NO ACTION,
+    FOREIGN KEY (fk_Treinamento_id) REFERENCES Treinamento(id) ON DELETE RESTRICT,
+    FOREIGN KEY (fk_slot_horario_id) REFERENCES slot_horario(id) ON DELETE NO ACTION,
+    FOREIGN KEY (fk_Data_Data) REFERENCES Datas(data) ON DELETE NO ACTION
+);
