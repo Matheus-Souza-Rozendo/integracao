@@ -1,10 +1,10 @@
 -- INSERIR O CODIGO AQUI 
 
 -- 1 
-SELECT fk_Treinamento_id, COUNT(*) AS total_participantes
+SELECT fk_Treinamento_id, COUNT(DISTINCT fk_Funcionario_id) AS total_participantes
 FROM Participa
 GROUP BY fk_Treinamento_id
-HAVING COUNT(*) > 10;
+HAVING total_participantes > 10;
 
 -- 2
 SELECT f.nome
@@ -75,11 +75,21 @@ WHERE TIME_TO_SEC(TIMEDIFF(s.hora_fim, s.hora_inicio)) / 60 > m.media;
 
 
 -- 8
-SELECT t.nome, COUNT(p.fk_Funcionario_id) AS participantes, t.max_participantes
-FROM Treinamento t
-JOIN Participa p ON t.id = p.fk_Treinamento_id
-GROUP BY t.id
-HAVING COUNT(p.fk_Funcionario_id) > t.max_participantes;
+SELECT 
+  t.nome, 
+  COUNT(DISTINCT p.fk_Funcionario_id) AS participantes, 
+  t.max_participantes 
+FROM 
+  Treinamento t 
+JOIN 
+  Participa p 
+ON 
+  t.id = p.fk_Treinamento_id 
+GROUP BY 
+  t.id 
+HAVING 
+  COUNT(DISTINCT p.fk_Funcionario_id) > t.max_participantes;
+
 
 
 
