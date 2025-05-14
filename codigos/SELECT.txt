@@ -57,21 +57,34 @@ FROM (
 
 
 -- 7
--- Primeiro, calcular a duração média dos treinamentos
-WITH Duracoes AS (
-    SELECT id, TIME_TO_SEC(TIMEDIFF(hora_fim, hora_inicio)) / 60 AS duracao_min
-    FROM slot_horario
+WITH duracao_treinamentos AS (
+    SELECT 
+        p.fk_Treinamento_id,
+        SUM(TIMESTAMPDIFF(SECOND, s.hora_inicio, s.hora_fim)) / 3600 AS duracao_horas
+    FROM (
+        SELECT DISTINCT 
+            fk_Treinamento_id, 
+            fk_slot_horario_id, 
+            fk_Data_Data 
+        FROM Participa
+    ) AS p
+    JOIN slot_horario s ON p.fk_slot_horario_id = s.id
+    GROUP BY p.fk_Treinamento_id
 ),
-MediaDuracao AS (
-    SELECT AVG(duracao_min) AS media
-    FROM Duracoes
+
+duracao_media AS (
+    SELECT AVG(duracao_horas) AS media_horas FROM duracao_treinamentos
 )
-SELECT DISTINCT f.nome
-FROM Funcionario f
-JOIN Participa p ON f.id = p.fk_Funcionario_id
-JOIN slot_horario s ON p.fk_slot_horario_id = s.id
-JOIN MediaDuracao m ON 1=1
-WHERE TIME_TO_SEC(TIMEDIFF(s.hora_fim, s.hora_inicio)) / 60 > m.media;
+
+SELECT DISTINCT 
+    f.nome AS nome_funcionario
+FROM Participa p
+JOIN Funcionario f ON f.id = p.fk_Funcionario_id
+JOIN Treinamento t ON t.id = p.fk_Treinamento_id
+JOIN duracao_treinamentos d ON t.id = d.fk_Treinamento_id
+JOIN duracao_media m ON d.duracao_horas > m.media_horas
+ORDER BY f.nome;
+
 
 
 -- 8
