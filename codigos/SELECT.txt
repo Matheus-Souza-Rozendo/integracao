@@ -1,32 +1,35 @@
+USE SistemaTreinamento
+
 -- INSERIR O CODIGO AQUI 
 
--- 1 
-SELECT fk_Treinamento_id, COUNT(DISTINCT fk_Funcionario_id) AS total_participantes
-FROM Participa
-GROUP BY fk_Treinamento_id
-HAVING total_participantes > 10;
+-- Listar os treinamentos com mais de 10 participantes.
 
--- 2
-SELECT f.nome
-FROM Funcionario f
-JOIN Participa p ON f.id = p.fk_Funcionario_id
-JOIN Treinamento t ON p.fk_Treinamento_id = t.id
-WHERE t.fk_Instrutor_id = 1  -- substitua pelo id desejado
-GROUP BY f.id
-HAVING COUNT(DISTINCT p.fk_Treinamento_id) = (
-    SELECT COUNT(*)
-    FROM Treinamento
-    WHERE fk_Instrutor_id = 1
+SELECT t.nome, COUNT(DISTINCT p.fk_Funcionario_id) as Total_Participantes FROM Treinamento as t 
+JOIN Participa as p ON t.id = p.fk_Treinamento_id 
+GROUP BY t.id 
+HAVING Total_Participantes>10;
+
+
+-- Listar os nomes dos funcionários que participaram de todos os treinamentos de um determinado instrutor.
+
+SELECT f.nome,COUNT(DISTINCT t.nome) as Total  FROM Funcionario as f 
+JOIN Participa as p ON p.fk_Funcionario_id=f.id 
+JOIN Treinamento as t ON t.id=p.FK_Treinamento_id 
+JOIN Instrutor as i ON i.id=t.fk_Instrutor_id WHERE i.nome= "Instrutor 3" 
+GROUP BY f.id HAVING Total=(
+  SELECT COUNT(*) FROM Treinamento as t JOIN Instrutor as i ON t.fk_Instrutor_id=i.id 
+  WHERE i.nome = "Instrutor 3"
 );
 
--- 3
-SELECT DISTINCT t.*
-FROM Treinamento t
-JOIN Participa p ON t.id = p.fk_Treinamento_id
-WHERE p.fk_Data_Data BETWEEN '2025-05-14' AND '2025-05-16';
+
+-- Listar os treinamentos que ocorreram em um determinado período (período informado na consulta).
+
+SELECT DISTINCT t.nome FROM Treinamento as t 
+JOIN Participa as p ON t.id=p.fk_Treinamento_id 
+WHERE p.fk_Data_Data BETWEEN '2025-05-14' AND '2025-05-17';
 
 
--- 4
+-- Listar os funcionários com treinamentos simultâneos (inconsistência).
 
 SELECT p1.fk_Funcionario_id
 FROM Participa p1
@@ -38,25 +41,27 @@ JOIN Participa p2
 GROUP BY p1.fk_Funcionario_id;
 
 
--- 5
-SELECT DISTINCT i.nome
-FROM Instrutor i
-JOIN Treinamento t ON i.id = t.fk_Instrutor_id
-JOIN Participa p ON t.id = p.fk_Treinamento_id
-GROUP BY t.id
-HAVING COUNT(p.fk_Funcionario_id) < 5;
+-- Listar os instrutores que ofereceram treinamentos com menos de 5 participantes.
+
+SELECT t.nome,i.nome, COUNT(DISTINCT p.fk_Funcionario_id) as Total FROM Instrutor as i 
+JOIN Treinamento as t ON i.id=t.fk_Instrutor_id 
+JOIN Participa as p ON p.fk_Treinamento_id=t.id 
+GROUP BY t.id 
+HAVING Total<5;
 
 
--- 6
-SELECT AVG(contagem) AS media_treinamentos
-FROM (
-    SELECT fk_Funcionario_id, COUNT(DISTINCT fk_Treinamento_id) AS contagem
-    FROM Participa
-    GROUP BY fk_Funcionario_id
-) AS subconsulta;
+
+-- Calcular a média de treinamentos por funcionário.
+
+SELECT AVG(Total) as Media FROM (
+  SELECT  COUNT(DISTINCT fk_Treinamento_id) as Total FROM Participa as p 
+  GROUP BY fk_Funcionario_id) 
+as Subconsulta;
 
 
--- 7
+
+-- Listar os funcionários que participaram de treinamentos com duração acima da média.
+
 WITH duracao_treinamentos AS (
     SELECT 
         p.fk_Treinamento_id,
@@ -87,7 +92,8 @@ ORDER BY f.nome;
 
 
 
--- 8
+-- Mostrar treinamentos em que o número de participantes ultrapassou o limite máximo.
+
 SELECT 
   t.nome, 
   COUNT(DISTINCT p.fk_Funcionario_id) AS participantes, 
